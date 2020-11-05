@@ -1,26 +1,14 @@
-const Router = require('express').Router
-const router = Router()
-
-var store = {
-    resources: {
-        0: { name: 'xx' },
-        1: { name: 'yy' },
-        2: { name: 'test' },
-        3: { name: 'newtest' },
-    }
-}
-
 /*
 get /api/resources/res_id -> renvoi la resource store.resources['res_id']
 */
 /*
 Exercice:
 4 Routes
-- 1) recuperer un objet avec son ID
-- 2) creer un objet
-- 3) replace une resource avec son ID
-- 4) patch une resource avec son ID
-- 5) delete une resource son ID
+- 1) recuperer un objet avec son ID | GET
+- 2) creer un objet | POST
+- 3) replace une resource avec son ID | PUT
+- 4) patch une resource avec son ID | PATCH
+- 5) delete une resource son ID | DEL
 ----------------------------------------
 Contraintes:
 - Le plus RESTful possible (methodes, json)
@@ -28,16 +16,57 @@ Contraintes:
     _> ajoute, get, modifie, get, et supprime la ressource.
 */
 
-router.get('/resources/get/:id', (req, res) => {
-    console.log(req.params)
-    console.log("store=")
-    console.log(store)
+const Router = require('express').Router
+const router = Router()
+const store = require('./store.js');
+
+// Creer une nouvelle ressource
+router.post('/resources', (req, res) => {
+    const resource = req.body
+    store.resources.add(resource)
+    res.json(resource)
+})
+
+// remplacer une ressource
+router.put('/resources/:id', (req, res) => {
     const id = req.params.id
-    //const { params: { id }} = req
-    res.send('bonjour ' + store.resources[id].name)
+    if (req.params.id === req.body.id) {
+        store.resources.replace(id, req.body)
+        res.json(req.body)
+    }
+    else
+        res.status(400).end()
+})
+
+// patch une ressource
+router.patch('/resources/:id', (req, res) => {
+    console.log({...req.body});
+    const id = req.params.id
+    const resource = store.resources.patch(id, {...req.body})
+    res.json(resource)
+})
+
+// supprimer
+router.delete('/resources/:id', (req, res) => {
+    const { id } = req.params
+    if (store.resources.getByID(id)) {
+        const tryDel = store.resources.remove(id)
+        res.json({ success: tryDel })
+    }
+    else
+        res.status(404).end()
+
 })
 
 
+router.get('/resources/:id', (req, res) => {
+    const id = req.params.id
+    res.json(store.resources.getByID(id))
+    //res.send('bonjour ' + store.resources[id].name)
+})
+
+/*
+//region my router
 router.get('/resources/add', (req, res) => {
     if (Object.keys(req.query).length) {
         store.resources[Object.keys(store.resources).length] = {name: req.query.addName};
@@ -80,6 +109,6 @@ router.get('/resources/del/:id', (req, res) => {
 
     res.send('supppresion du store a l\'id ' + req.params.id)
 })
-
+*/
 
 module.exports = router
