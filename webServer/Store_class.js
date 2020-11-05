@@ -42,6 +42,7 @@ class Store{
     remove(id){
         if (this.content[id]){
             delete this.content[id]
+            this.save();
             return true;
         }
         return false;
@@ -49,6 +50,7 @@ class Store{
     replace(id, resource) {
         if (this.content[id]) {
             this.content[id] = resource
+            this.save();
             return true;
         }
         return false;
@@ -56,6 +58,7 @@ class Store{
 
     patch(id, resource){
         this.content[id] = { ...this.content[id], ...resource }
+        this.save();
         return this.content[id];
     }
 
