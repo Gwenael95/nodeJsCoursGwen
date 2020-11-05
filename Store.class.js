@@ -47,6 +47,7 @@ class Store {
         const id = uuidv4()
         resource.id = id
         this.content[id] = resource
+        console.log("added")
         return resource
     }
 
@@ -68,6 +69,8 @@ class Store {
         if (!this.content[id])
             return false
         this.content[id] = { ...this.content[id], ...resource }
+        console.log("patched")
+
         return this.content[id]
     }
 

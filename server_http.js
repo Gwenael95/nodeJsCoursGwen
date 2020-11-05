@@ -1,4 +1,4 @@
-const http = require('http')
+/*const http = require('http')
 
 // const newServer = http.createServer((req, res) => {
 //     console.log(req.url)
@@ -59,3 +59,4 @@ app.get('/myurl', (req, res) => {
 app.listen(4022, () => {
     console.log('Listening on 4022')
 })
+*/
