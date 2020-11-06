@@ -1,85 +1,44 @@
-
-//region prepare to include the server code into our webserver
+// Prepare to include the server code into our web_server
 const express = require('express')
 const http = require('http')
-const cors = require("cors")
+const cors = require('cors')
 const app = express()
-const server =http.createServer(app)
-app.use(cors())
-app.use(express.static('html'))
-//endregion setup
+const server = http.createServer(app)
+/* End setup webserver */
 
-const SocketIOServer = require('socket.io').Server
-const io = new SocketIOServer(server)
+const createHandlers = require('./src/PacketHandlers')
 
-function filterDate(timeStamp){
-    var date = new Date(timeStamp );
-    var year = date.getFullYear();
-    var month = (date.getMonth()+1);
-    var day = date.getDate();
-
-    var hours = date.getHours();
-    var minutes = date.getMinutes();
-    var seconds = date.getSeconds();
-
-    var formattedTime = day + '/' + month + '/' + year + " - " + hours + ':' + minutes + ':' + seconds;
-
-    return formattedTime;
-}
-function displayAllClients(){
-    console.log(io.sockets.in("http://localhost:5055/").sockets.keys());
-}
+const io = require('socket.io')(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"],
+        // allowedHeaders: ["my-custom-header"],
+        credentials: true
+    }
+})
 
 const pseudos = []
-let clients = {
-    'client.id' : ""
-}
-let connected =0;
-
-function addPseudo(pseudo){
-    pseudos.push(pseudo)
+const clients = {
+    'client.id': 'pseudo'
 }
 
-io.on('connection', (socket_client)=>{
-    let pseudo
-    console.log('client connected', socket_client.id)
-    //displayAllClients();
+let connected = 0
 
-    socket_client.on('send_message', (data)=>{
-        const packet_msg = {
-            message : data.message,
-            date: filterDate(new Date()),
-            client: socket_client.id,
-            pseudo:data.pseudo,
-        }
+io.on('connection', function(socket_client) {
+    console.log('Client connected', socket_client.id)
 
-        io.emit('new_message', packet_msg) // envoie a tout le monde
-        //socket_client.broadcast.emit('new_message', packet_msg) //envoi a tout les autres clients
-    })
+    const handlers = createHandlers(io, socket_client)
 
-    socket_client.on('set_pseudo', (data)=>{
-        console.log(pseudos)
-        if (pseudos.includes(data.pseudo)){
-            socket_client.emit('new_error', {error : false}) // envoie a un seul
-        }
-        else
-        {
-            addPseudo(data.pseudo)
-            io.emit('new_message', {message:"new pseudo added", pseudo:data.pseudo}) // envoie a tout le monde
-            socket_client.emit('new_pseudo', {pseudo : data.pseudo})
-        }
-    })
+    socket_client.on('change_pseudo', handlers.ChangePseudo)
+    socket_client.on('send_message', handlers.SendMessage)
+    socket_client.on('disconnect', handlers.Disconnect)
 
-    //not ended
-    socket_client.on('disconnect', ()=>{
-        console.log("disconnection")
-        /*const index = pseudos.indexOf(pseudo);
-        console.log(index);
-        pseudos.splice(index, 1);
-        delete clients[socket_client.id]*/
-        connected--
-    })
+})
+
+server.listen(5055, () => {
+    console.log('started')
 })
 
 
-server.listen(5055)
+
+

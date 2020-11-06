@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Chat Socket.IO</title>
+</head>
+<body>
+
+<div id="app">
+  <div v-if="this.pseudo===''">
+    <input @keypress.enter="changePseudo" v-model="pseudoValue" size="100" />
+    <p v-if="this.pseudoError">Ce pseudo existe déjà</p>
+  </div>
+  <div v-if="this.pseudo!=='' && !this.pseudoError">
+    <!--<div>
+      <textarea v-model="str_messages" cols="100" rows="30" disabled></textarea>
+    </div>-->
+
+    <div style="height: 500px; overflow-y: scroll;">
+      <div v-for="(msg, index) in messages" v-bind:key="index" style="border-radius: 10px;padding:15px;margin:1em; background-color: lightblue; border:2px black solid">
+        <div style=" margin-right: 1em; font-size: 0.8em;display: flex; justify-content: flex-start;align-items: center;padding: 10px">
+          <div>{{msg.date}}</div>
+          <div style="font-size: 1.4em; font-family: Verdana; margin-left: 1em;">
+            {{msg.pseudo}}
+          </div>
+        </div>
+        <div style="border: lightskyblue 2px groove;background-color: white; padding: 10px; font-size: 1em;">
+          {{msg.message}}
+        </div>
+      </div>
+    </div>
+    <div>
+      <input v-model="pseudo" size="20" disabled>
+      <input @keypress.enter="sendMessage" v-model="client_message" size="100" :disabled="!connected" />
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.0/socket.io.js"></script>
+
+<script>
+  const formatMsg = (msg) => `[${msg.date}] $ {msg.pseudo}: ${msg.message}`
+  const socket = io('http://localhost:5055')
+
+  socket.on('connect', () => {
+    app.connected = true
+  })
+
+  socket.on('disconnect', () => {
+    app.connected = false
+  })
+
+  socket.on('pseudo_error', () => {
+    app.pseudoError = true
+  })
+
+  socket.on('change_pseudo', (data) => {
+    app.pseudo = data.pseudo;
+    app.pseudoError = false;
+
+  })
+
+  socket.on('new_message', (data) => {
+    app.messages.push(data)
+    window.notifyNow(formatMsg(data), true)
+  })
+
+  const app = new Vue({
+    el: '#app',
+    data() { return {
+      client_message: '',
+      messages: [],
+      pseudo: '',
+      pseudoValue: '',
+      pseudoError:false,
+      connected: false
+    }},
+    computed: {
+      str_messages() {
+        let str = ''
+        for (let msg of this.messages) {
+          str += `[${msg.date}] ${msg.pseudo}: ${msg.message}\n`
+        }
+        return str
+      }
+    },
+    methods: {
+      sendMessage() {
+        socket.emit('send_message', { message: this.client_message })
+        this.client_message = ''
+      },
+      changePseudo() {
+        socket.emit('change_pseudo', { pseudo: this.pseudoValue })
+      }
+    }
+  })
+</script>
+</body>
+</html>
