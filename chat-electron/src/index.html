@@ -18,15 +18,34 @@
     </div>-->
 
     <div style="height: 500px; overflow-y: scroll;">
-      <div v-for="(msg, index) in messages" v-bind:key="index" style="border-radius: 10px;padding:15px;margin:1em; background-color: lightblue; border:2px black solid">
-        <div style=" margin-right: 1em; font-size: 0.8em;display: flex; justify-content: flex-start;align-items: center;padding: 10px">
-          <div>{{msg.date}}</div>
-          <div style="font-size: 1.4em; font-family: Verdana; margin-left: 1em;">
-            {{msg.pseudo}}
+      <div v-for="(msg, index) in messages" v-bind:key="index" v-bind:pseudo="this.pseudo">
+        <div v-if="msg.pseudo===pseudo" style="margin:1em; margin-right:50px; border-radius: 10px;padding:15px; background-color: lightblue; border:2px black solid">
+          <div style=" margin-right: 1em; font-size: 0.8em;display: flex; justify-content: flex-start;align-items: center;padding: 10px">
+            <div>{{msg.date}}</div>
+            <div style="font-size: 1.4em; font-family: Verdana; margin-left: 1em;">
+              {{msg.pseudo}}
+            </div>
+          </div>
+
+          <div style="border: lightskyblue 2px groove;background-color: white; padding: 10px; font-size: 1em;">
+            {{msg.message}}
           </div>
         </div>
-        <div style="border: lightskyblue 2px groove;background-color: white; padding: 10px; font-size: 1em;">
-          {{msg.message}}
+
+
+
+
+        <div v-if="msg.pseudo!==pseudo" style="margin:1em;margin-left:50px;border-radius: 10px;padding:15px; background-color: darkgrey; border:2px black solid">
+          <div style=" margin-right: 1em; font-size: 0.8em;display: flex; justify-content: flex-start;align-items: center;padding: 10px">
+            <div>{{msg.date}}</div>
+            <div style="font-size: 1.4em; font-family: Verdana; margin-left: 1em;">
+              {{msg.pseudo}}
+            </div>
+          </div>
+
+          <div style="border: lightskyblue 2px groove;background-color: white; padding: 10px; font-size: 1em;">
+            {{msg.message}}
+          </div>
         </div>
       </div>
     </div>
