@@ -12,7 +12,6 @@
         <label for="pseudo">Mon Pseudo</label>
         <input @keypress.enter="setPseudo()" v-model="pseudoValue" size="100" id="pseudo" placeholder="Mon pseudo"/>
         <p v-if="this.pseudoError" >ce pseudo existe déjà</p>
-
     </div>
     <div>
         <p v-if="this.pseudo!==''">{{this.pseudo}}</p>
@@ -37,7 +36,10 @@
         app.messages.push(data)
     })
     socket.on('new_error', (data) => {
-        app.pseudoError = data.error;
+        app.pseudoError = true;
+    })
+    socket.on('new_pseudo', (data) => {
+        app.pseudo = data.pseudo;
     })
     const app = new Vue({
         el: '#app',
@@ -64,11 +66,6 @@
             },
             setPseudo(){
                 socket.emit('set_pseudo', {  pseudo: this.pseudoValue })
-                if (!this.pseudoError){
-                    this.pseudo = this.pseudoValue
-                    this.pseudoError=false;
-                }
-
             }
         }
     })
