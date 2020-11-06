@@ -1,8 +1,6 @@
 const crypto = require('crypto')
-const Router = require('express').Router
-const router = Router()
 const store = require('../store')
-const { checkAuth, reqAuth } = require('../middlewares')
+const event_manager = require('../events')
 
 function hashPassword(password) {
     const hash = crypto.createHash('sha256')
@@ -10,7 +8,7 @@ function hashPassword(password) {
     return hash.digest('hex')
 }
 
-router.post('/register', (req, res) => {
+function postRegister(req, res) {
     const { pseudo, password } = req.body
     const hashedPassword = hashPassword(password)
 
@@ -18,10 +16,14 @@ router.post('/register', (req, res) => {
         pseudo,
         password: hashedPassword
     })
-    res.json(user)
-})
 
-router.post('/login', (req, res) => {
+    // emit event - new user, user
+    event_manager.emit('new_user', user)
+
+    res.json(user)
+}
+
+function postLogin(req, res) {
     const { pseudo, password } = req.body
     const hashedPassword = hashPassword(password)
 
@@ -34,10 +36,12 @@ router.post('/login', (req, res) => {
     else {
         res.status(400).json({ error: 'Bad credentials' })
     }
-})
+}
 
-router.get('/me', checkAuth, reqAuth, (req, res) => {
+function getMe(req, res) {
     res.json(req.user)
-})
+}
 
-module.exports = router
+exports.postLogin = postLogin
+exports.postRegister = postRegister
+exports.getMe = getMe
