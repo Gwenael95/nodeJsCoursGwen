@@ -13,34 +13,34 @@ const SocketIOServer = require('socket.io').Server
 const io = new SocketIOServer(server)
 
 function filterDate(timeStamp){
-    let date = new Date(timeStamp );
-    let year = date.getFullYear();
-    let month = (date.getMonth()+1);
-    let day = date.getDate();
+    var date = new Date(timeStamp );
+    var year = date.getFullYear();
+    var month = (date.getMonth()+1);
+    var day = date.getDate();
 
-    let hours = date.getHours();
-    let minutes = date.getMinutes();
-    let seconds = date.getSeconds();
+    var hours = date.getHours();
+    var minutes = date.getMinutes();
+    var seconds = date.getSeconds();
 
-    return day + '/' + month + '/' + year + " - " + hours + ':' + minutes + ':' + seconds;
+    var formattedTime = day + '/' + month + '/' + year + " - " + hours + ':' + minutes + ':' + seconds;
+
+    return formattedTime;
 }
 function displayAllClients(){
     console.log(io.sockets.in("http://localhost:5055/").sockets.keys());
 }
 
-let connected =0;
-
-const pseudos = []
+let pseudos = []
 let clients = {
     'client.id' : ""
 }
-function addPseudo(pseudo){
-    pseudos.push(pseudo)
-}
+let connected =0;
 
 io.on('connection', (socket_client)=>{
     let pseudo
     console.log('client connected', socket_client.id)
+    //displayAllClients();
+
     socket_client.on('send_message', (data)=>{
         const packet_msg = {
             message : data.message,
@@ -53,25 +53,21 @@ io.on('connection', (socket_client)=>{
         //socket_client.broadcast.emit('new_message', packet_msg) //envoi a tout les autres clients
     })
 
-    socket_client.on('check_set_pseudo', (data)=>{
+    socket_client.on('set_pseudo', (data)=>{
         if (pseudos.includes(data.pseudo)){
-            console.log("pseudo already exist")
-            io.emit('new_error_pseudo', {error : true}) // envoie a tout le monde
+            io.emit('new_error', {error : false}) // envoie a tout le monde
         }
         else
         {
-            addPseudo(data.pseudo)
-            console.log(pseudos)
+            pseudos.push(data.pseudo)
             io.emit('new_message', {message:"new pseudo added", pseudo:data.pseudo}) // envoie a tout le monde
-            io.emit('set_pseudo', { pseudo:data.pseudo}) // envoie a tout le monde
         }
     })
 
-    socket_client.on('disconnect', ()=>{ //pb avec le disconnect, c'est lui qui vide le tableau pseudos
+    socket_client.on('disconnect', ()=>{
         const index = pseudos.indexOf(pseudo);
         pseudos.splice(index, 1);
-        console.log(pseudo + " is not connected anymore")
-
+        console.log(pseudos)
         delete clients[socket_client.id]
         connected--
     })

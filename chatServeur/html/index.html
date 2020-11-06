@@ -17,7 +17,7 @@
     <div>
         <p v-if="this.pseudo!==''">{{this.pseudo}}</p>
     </div>
-    <div v-if="this.pseudo!=='' && !this.pseudoError">
+    <div v-if="this.pseudo!==''">
         <div>
             <textarea v-model="str_messages" cols="100" rows="30"></textarea>
         </div>
@@ -36,14 +36,8 @@
     socket.on('new_message', (data) => {
         app.messages.push(data)
     })
-    socket.on('new_error_pseudo', (data) => {
-        console.log("new error pseudo")
-        app.pseudoError = true;
-    })
-    socket.on('set_pseudo', (data) => {
-        app.pseudo = data.pseudo;
-        app.pseudoError = false;
-
+    socket.on('new_error', (data) => {
+        app.pseudoError = data.error;
     })
     const app = new Vue({
         el: '#app',
@@ -69,10 +63,16 @@
                 this.client_message = ''
             },
             setPseudo(){
-                socket.emit('check_set_pseudo', {  pseudo: this.pseudoValue })
+                socket.emit('set_pseudo', {  pseudo: this.pseudoValue })
+                if (!this.pseudoError){
+                    this.pseudo = this.pseudoValue
+                    this.pseudoError=false;
+                }
+
             }
         }
     })
 </script>
 </body>
 </html>
+
